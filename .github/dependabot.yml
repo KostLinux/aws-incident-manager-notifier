@@ -7,4 +7,3 @@ updates:
     reviewers:
       - "KostLinux"
     open-pull-requests-limit: 10
-    auto_merge: true
