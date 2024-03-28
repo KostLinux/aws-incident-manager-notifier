@@ -2,8 +2,6 @@ module oncall-notify
 
 go 1.22.1
 
-require github.com/aws/aws-sdk-go v1.51.8
-
 require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.9 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.0 // indirect
