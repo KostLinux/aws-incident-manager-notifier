@@ -19,6 +19,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.27.27
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.15 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.15 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ssmcontacts v1.22.8
+	github.com/aws/aws-sdk-go-v2/service/ssmcontacts v1.24.3
 	github.com/aws/smithy-go v1.20.3 // indirect
 )
