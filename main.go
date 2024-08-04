@@ -105,13 +105,13 @@ func handleRequest(ctx context.Context) (string, error) {
 
 	if message != "" {
 		// Extract user IDs from the userIDs map
-		var ids []string
-		for _, id := range config.SlackConfig.UserIDs {
-			ids = append(ids, id)
+		var userIdList []string
+		for _, userId := range config.SlackConfig.UserIDs {
+			userIdList = append(userIdList, userId)
 		}
 
 		// Update user group users
-		if err := updateUserGroupUsers(config.SlackConfig.SubTeamID, ids); err != nil {
+		if err := updateUserGroupUsers(config.SlackConfig.SubTeamID, userIdList); err != nil {
 			log.Fatalf("Error updating user group users: %v\n", err)
 		}
 
