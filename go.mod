@@ -2,6 +2,8 @@ module oncall-notify
 
 go 1.22.1
 
+require github.com/json-iterator/go v1.1.12
+
 require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.27 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.11 // indirect
@@ -11,6 +13,8 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sso v1.22.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.26.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.30.3 // indirect
+	github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421 // indirect
+	github.com/modern-go/reflect2 v1.0.2 // indirect
 )
 
 require (
