@@ -5,10 +5,6 @@ import (
 	"strings"
 )
 
-var (
-	slackUserIDs = map[string]string{}
-)
-
 type SlackConfig struct {
 	ApiUrl      string
 	WebhookUrl  string
@@ -37,7 +33,7 @@ func NewConfig(
 	}
 }
 
-func GetUserID() map[string]string {
+func (config *SlackConfig) ConfigureUserIDs() {
 	// Iterate over all environment variables
 	for _, envVar := range os.Environ() {
 		// Split the environment variable into key and value
@@ -47,10 +43,8 @@ func GetUserID() map[string]string {
 
 		// Check if the key has the prefix "SSM_"
 		if strings.HasPrefix(key, "SSM_") {
-			// Convert the key to lowercase and store it in the slackUserIDs map
-			slackUserIDs[strings.ToLower(key)] = value
+			// Convert the key to lowercase and store it in the UserIDs map
+			config.UserIDs[strings.ToLower(key)] = value
 		}
 	}
-
-	return slackUserIDs
 }

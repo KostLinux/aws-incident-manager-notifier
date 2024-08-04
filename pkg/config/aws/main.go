@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -27,6 +28,10 @@ func NewConfig(awsRegion string) (*AwsConfig, error) {
 		options.Region = awsRegion
 	})
 
+	if ssmClient == nil {
+		log.Fatalf("failed to create SSM Contacts client")
+	}
+
 	return &AwsConfig{
 		AwsRegion:         awsRegion,
 		SSMContactsClient: ssmClient,
@@ -35,24 +40,25 @@ func NewConfig(awsRegion string) (*AwsConfig, error) {
 
 func (cfg *AwsConfig) LoadAndPrintAllRotationShifts(ctx context.Context) ([]string, error) {
 	weekDuration := time.Hour * 24 * 7
+	var contactIds []string
 
-	outputRotations, err := cfg.SSMContactsClient.ListRotations(ctx, &ssmcontacts.ListRotationsInput{})
+	rotationList, err := cfg.SSMContactsClient.ListRotations(ctx, &ssmcontacts.ListRotationsInput{})
 	if err != nil {
 		return nil, fmt.Errorf("error loading rotations: %w", err)
 	}
 
-	var contactIds []string
-	for _, rotation := range outputRotations.Rotations {
-		outputShifts, err := cfg.SSMContactsClient.ListRotationShifts(ctx, &ssmcontacts.ListRotationShiftsInput{
+	for _, rotation := range rotationList.Rotations {
+		shifts, err := cfg.SSMContactsClient.ListRotationShifts(ctx, &ssmcontacts.ListRotationShiftsInput{
 			EndTime:    aws.Time(time.Now().Add(1 * weekDuration)),
 			RotationId: rotation.RotationArn,
 			StartTime:  aws.Time(time.Now().Add(-1 * time.Hour)),
 		})
+
 		if err != nil {
 			return nil, fmt.Errorf("error loading rotation shifts for rotation %s: %w", *rotation.RotationArn, err)
 		}
 
-		for _, shift := range outputShifts.RotationShifts {
+		for _, shift := range shifts.RotationShifts {
 			contactIds = append(contactIds, shift.ContactIds...)
 		}
 	}

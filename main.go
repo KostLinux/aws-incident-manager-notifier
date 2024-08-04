@@ -37,19 +37,18 @@ func main() {
 	slackApiToken := env.DefaultEnv("SLACK_API_TOKEN", "")
 	slackSubTeamID := env.DefaultEnv("SLACK_SUBTEAM_ID", "")
 	slackSubTeamName := env.DefaultEnv("SLACK_SUBTEAM_NAME", "support")
-	slackUserIDs := slack.GetUserID()
+	slackUserIDs := make(map[string]string)
 
 	if slackApiToken == "" {
-		fmt.Println("Error: Slack API token is not set")
-		return
+		log.Fatalf("Error: Slack API token is not set")
 	}
 
 	awsConfig, err := aws.NewConfig(awsRegion)
 	if err != nil {
-		fmt.Printf("Error creating AWS config: %v\n", err)
-		return
+		log.Fatalf("Error loading AWS config: %v\n", err)
 	}
 
+	// Create a new Slack config
 	slackConfig := slack.NewConfig(
 		slackApiUrl,
 		slackWebhookUrl,
@@ -58,6 +57,9 @@ func main() {
 		slackSubTeamName,
 		slackUserIDs,
 	)
+
+	// Configure the UserIDs map
+	slackConfig.ConfigureUserIDs()
 
 	config = NewConfig(
 		awsConfig,
@@ -80,6 +82,7 @@ func printSupportEngineerForWeek() string {
 			return fmt.Sprintf("<!subteam^%s|%s> this week is <@%s> \n", config.SlackConfig.SubTeamID, config.SlackConfig.SubTeamName, userID)
 		}
 	}
+
 	return ""
 }
 
@@ -89,8 +92,7 @@ func updateUserGroupUsers(userGroupID string, userIDs []string) error {
 	data.Set("usergroup", userGroupID)
 	data.Set("users", strings.Join(userIDs, ","))
 
-	_, err := http.PostForm(config.SlackConfig.ApiUrl, data)
-	if err != nil {
+	if _, err := http.PostForm(config.SlackConfig.ApiUrl, data); err != nil {
 		return err
 	}
 
@@ -100,6 +102,7 @@ func updateUserGroupUsers(userGroupID string, userIDs []string) error {
 func handleRequest(ctx context.Context) (string, error) {
 	message := printSupportEngineerForWeek()
 	fmt.Println(message)
+
 	if message != "" {
 		// Extract user IDs from the userIDs map
 		var ids []string
@@ -108,19 +111,20 @@ func handleRequest(ctx context.Context) (string, error) {
 		}
 
 		// Update user group users
-		err := updateUserGroupUsers(config.SlackConfig.SubTeamID, ids)
-		if err != nil {
+		if err := updateUserGroupUsers(config.SlackConfig.SubTeamID, ids); err != nil {
 			log.Fatalf("Error updating user group users: %v\n", err)
 		}
 
 		slackBody, _ := jsoniter.Marshal(map[string]string{"text": message})
-		resp, err := http.Post(config.SlackConfig.WebhookUrl, "application/json", bytes.NewBuffer(slackBody))
+		response, err := http.Post(config.SlackConfig.WebhookUrl, "application/json", bytes.NewBuffer(slackBody))
 		if err != nil {
 			log.Fatalf("Error sending message to Slack: %v\n", err)
 		}
-		if resp.StatusCode != 200 {
-			log.Fatalf("Error sending message to Slack: received non-200 response: %d\n", resp.StatusCode)
+
+		if response.StatusCode != 200 {
+			log.Fatalf("Error sending message to Slack: received non-200 response: %d\n", response.StatusCode)
 		}
 	}
+
 	return message, nil
 }
